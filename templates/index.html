@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Enterprise Security Portal - Login</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f3f4f6; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .login-card { background: #ffffff; padding: 40px; border-radius: 12px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); text-align: center; position: relative; }
+        h2 { color: #111827; margin-bottom: 24px; font-size: 24px; }
+        .form-group { text-align: left; margin-bottom: 16px; }
+        label { display: block; font-size: 13px; font-weight: 600; color: #4b5563; margin-bottom: 6px; }
+        input { width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; outline: none; }
+        input:focus { border-color: #2563eb; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 10px; transition: background 0.2s; }
+        .btn-blue { background-color: #2563eb; color: white; }
+        .btn-blue:hover { background-color: #1d4ed8; }
+        .btn-green { background-color: #10b981; color: white; }
+        .btn-green:hover { background-color: #047857; }
+        .forgot-link { display: block; margin-top: 15px; font-size: 13px; color: #2563eb; text-decoration: none; cursor: pointer; font-weight: 500; }
+        .forgot-link:hover { text-decoration: underline; }
+        
+        /* Modal Window Box Overlay Style Layout */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 100; }
+        .modal-box { background: white; padding: 30px; border-radius: 8px; width: 90%; max-width: 360px; text-align: center; }
+        .modal-box h3 { margin-bottom: 15px; color: #111827; }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <h2>Account Authentication</h2>
+        
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="usernameField" placeholder="Enter username">
+        </div>
+        
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="passwordField" placeholder="Enter password">
+        </div>
+        
+        <button type="button" class="btn btn-blue" onclick="processUserLogin()">Sign In</button>
+        <button type="button" class="btn btn-green" onclick="processUserRegistration()">Create Account</button>
+        
+        <!-- FORGOT PASSWORD ACCOUNT SELECTION LINK BUTTON -->
+        <a class="forgot-link" onclick="toggleRecoveryModal(true)">Forgot Password?</a>
+    </div>
+
+    <!-- RECOVERY TRIGGER SUB-CONTAINER DIALOG WINDOW SHEET Overlay -->
+    <div class="modal-overlay" id="pwdRecoveryModalWindow">
+        <div class="modal-box">
+            <h3>Reset Password</h3>
+            <div class="form-group">
+                <label>Confirm Account Username</label>
+                <input type="text" id="recoverUserField" placeholder="Enter your username">
+            </div>
+            <div class="form-group">
+                <label>Type New Secure Password</label>
+                <input type="password" id="recoverNewPasswordField" placeholder="Enter new password">
+            </div>
+            <button type="button" class="btn btn-blue" onclick="executePasswordReset()">Update Password</button>
+            <button type="button" class="btn" style="background:#e5e7eb;" onclick="toggleRecoveryModal(false)">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        function toggleRecoveryModal(show) {
+            document.getElementById('pwdRecoveryModalWindow').style.display = show ? 'flex' : 'none';
+        }
+
+        async function executePasswordReset() {
+            var usr = document.getElementById('recoverUserField').value.trim();
+            var nPwd = document.getElementById('recoverNewPasswordField').value;
+            if(!usr || !nPwd) { alert("Please complete both parameters fields box."); return; }
+            try {
+                var response = await fetch('/api/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: usr, new_password: nPwd })
+                });
+                var data = await response.json();
+                if(response.ok) {
+                    alert(data.message); toggleRecoveryModal(false);
+                } else {
+                    alert(data.message || "Failed to update security keys.");
+                }
+            } catch(e) { alert("Communication fail."); }
+        }
+
+        async function processUserLogin() {
+            var user = document.getElementById('usernameField').value.trim();
+            var pass = document.getElementById('passwordField').value;
+            if(!user || !pass) { alert("Please fill in all fields."); return; }
+            try {
+                var response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+                if(response.ok) { window.location.href = '/home'; } 
+                else { alert("Invalid username or password match configuration."); }
+            } catch(e) { alert("Network pipeline timeout error."); }
+        }
+
+        async function processUserRegistration() {
+            var user = document.getElementById('usernameField').value.trim();
+            var pass = document.getElementById('passwordField').value;
+            if(!user || !pass) { alert("Please enter credentials."); return; }
+            try {
+                var response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+                if(response.ok) { alert("Account successfully built!"); } 
+                else { alert("Username already exists inside database rows."); }
+            } catch(e) { alert("Registration exception loop."); }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Predictive Risk Log Summary Report Ledger</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f3f4f6; padding: 20px; }
+        .workspace-container { width: 100%; max-width: 1100px; margin: 20px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); }
+        .tabs-header { display: flex; background: #ffffff; padding: 15px 20px 0 20px; border-bottom: 1px solid #e5e7eb; }
+        .tab-btn { padding: 14px 28px; font-weight: bold; font-size: 15px; border: none; background: #ffffff; cursor: pointer; text-decoration: none; color: #4b5563; border-radius: 8px 8px 0 0; transition: all 0.2s; }
+        .tab-btn:hover { color: #111827; background-color: #f9fafb; }
+        .tab-btn.active { background-color: #ffeb3b; color: #000000; }
+        .layout-body-wrapper { display: flex; min-height: 520px; }
+        .left-menu-sidebar { width: 240px; background-color: #ffffff; border-right: 1px solid #e5e7eb; padding: 20px 10px; }
+        .sidebar-menu-item { display: block; padding: 12px 16px; font-weight: bold; font-size: 14px; color: #4b5563; text-decoration: none; border-radius: 6px; margin-bottom: 8px; transition: all 0.2s; cursor: pointer; }
+        .sidebar-menu-item:hover { background-color: #f3f4f6; color: #111827; }
+        .sidebar-menu-item.active { background-color: #2563eb; color: #ffffff; }
+        .right-content-workspace { flex: 1; padding: 30px; }
+        .view-panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .content-title { font-size: 20px; font-weight: bold; color: #111827; }
+        .filter-panel-row { display: flex; align-items: center; gap: 20px; background-color: #f9fafb; border: 1px solid #e5e7eb; padding: 15px 20px; border-radius: 8px; margin-bottom: 25px; }
+        .filter-group { display: flex; flex-direction: column; gap: 6px; }
+        .filter-group label { font-size: 12px; font-weight: bold; color: #4b5563; text-transform: uppercase; }
+        .date-input-field { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; font-family: inherit; color: #111827; background: #ffffff; }
+        .submit-query-btn { background-color: #059669; color: #ffffff; font-weight: bold; font-size: 14px; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; transition: background-color 0.2s; height: 38px; }
+        .submit-query-btn:hover { background-color: #047857; }
+        .export-excel-btn { background-color: #2563eb; color: #ffffff; font-weight: bold; font-size: 13px; text-decoration: none; padding: 10px 20px; border-radius: 6px; display: inline-flex; align-items: center; transition: background-color 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .export-excel-btn:hover { background-color: #1d4ed8; }
+        .data-table { width: 100%; border-collapse: collapse; text-align: left; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.02); display: none; }
+        .data-table th { padding: 14px 16px; border-bottom: 2px solid #e5e7eb; color: #4b5563; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.03em; }
+        .data-table td { padding: 16px; border-bottom: 1px solid #f3f4f6; color: #111827; font-size: 14px; }
+        .data-table tr:hover { background-color: #fafafa; }
+        .alert-marker-tag { display: inline-block; padding: 4px 12px; border-radius: 50px; font-size: 11px; font-weight: bold; background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+    <div class="workspace-container">
+        <div class="tabs-header">
+            <a href="/home" class="tab-btn">Home</a>
+            <a href="/config" class="tab-btn">Config</a>
+            <a href="/rules" class="tab-btn">Rules</a>
+            <a href="/report" class="tab-btn active">Report</a>
+        </div>
+        <div class="layout-body-wrapper">
+            <div class="left-menu-sidebar">
+                <div id="summaryMenuOpt" class="sidebar-menu-item active" onclick="switchSubViewPerspective('summary')">📋 Alert Summary</div>
+                <div id="reportMenuOpt" class="sidebar-menu-item" onclick="switchSubViewPerspective('report')">🚨 Alert Report</div>
+            </div>
+            <div class="right-content-workspace">
+                <div class="view-panel-header">
+                    <div id="workspaceViewTitleHeader" class="content-title">Compliance Alert Summary Counter Analytics</div>
+                    <a href="/api/export-report-csv" class="export-excel-btn">📥 Export Spreadsheet (.CSV)</a>
+                </div>
+                <div class="filter-panel-row">
+                    <div class="filter-group">
+                        <label>From Date</label>
+                        <input type="date" id="queryFromDateInput" class="date-input-field">
+                    </div>
+                    <div class="filter-group">
+                        <label>To Date</label>
+                        <input type="date" id="queryToDateInput" class="date-input-field">
+                    </div>
+                    <button class="submit-query-btn" onclick="executeBoundMetricsQueryFetchPipeline()">Submit Query</button>
+                </div>
+                
+                <table id="summaryMetricsViewTable" class="data-table" style="display: table;">
+                    <thead>
+                        <tr>
+                            <th style="text-align: center; background-color: #f9fafb;">GST Refund</th>
+                            <th style="text-align: center; background-color: #f9fafb;">High Value Credit</th>
+                            <th style="text-align: center; background-color: #f9fafb;">ATM Withdrawal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="text-align: center; font-size: 24px; font-weight: bold; color: #2563eb; padding: 30px;" id="summaryCellRule1">0</td>
+                            <td style="text-align: center; font-size: 24px; font-weight: bold; color: #d97706; padding: 30px;" id="summaryCellRule2">0</td>
+                            <td style="text-align: center; font-size: 24px; font-weight: bold; color: #059669; padding: 30px;" id="summaryCellRule3">0</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <table id="detailedLogsViewTable" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Alert ID</th>
+                            <th>Account Number</th>
+                            <th>Customer ID</th>
+                            <th>Triggered Fraud Rule</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailedLogsGridTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+        var currentActiveViewPerspective = 'summary';
+
+        //  Uses LocalStorage memory handles to keep date selections permanently sticky
+        function initializeDefaultCalendarWindowBounds() {
+            var savedFrom = localStorage.getItem('compliance_from_date');
+            var savedTo = localStorage.getItem('compliance_to_date');
+            
+            if (savedFrom && savedTo) {
+                document.getElementById('queryFromDateInput').value = savedFrom;
+                document.getElementById('queryToDateInput').value = savedTo;
+            } else {
+                var today = new Date();
+                var lastWeek = new Date(today.getTime() - (14 * 24 * 60 * 60 * 1000));
+                var defaultTo = today.toISOString().split('T')[0];
+                var defaultFrom = lastWeek.toISOString().split('T')[0];
+                
+                document.getElementById('queryToDateInput').value = defaultTo;
+                document.getElementById('queryFromDateInput').value = defaultFrom;
+                
+                localStorage.setItem('compliance_from_date', defaultFrom);
+                localStorage.setItem('compliance_to_date', defaultTo);
+            }
+        }
+
+        // Listen for calendar adjustments and save them immediately to memory profiles
+        document.getElementById('queryFromDateInput').addEventListener('change', function() {
+            localStorage.setItem('compliance_from_date', this.value);
+        });
+        document.getElementById('queryToDateInput').addEventListener('change', function() {
+            localStorage.setItem('compliance_to_date', this.value);
+        });
+
+        function switchSubViewPerspective(selectedPerspective) {
+            currentActiveViewPerspective = selectedPerspective;
+            document.getElementById('summaryMenuOpt').classList.remove('active');
+            document.getElementById('reportMenuOpt').classList.remove('active');
+            document.getElementById('summaryMetricsViewTable').style.display = 'none';
+            document.getElementById('detailedLogsViewTable').style.display = 'none';
+            
+            if (selectedPerspective === 'summary') {
+                document.getElementById('summaryMenuOpt').classList.add('active');
+                document.getElementById('workspaceViewTitleHeader').innerText = "Compliance Alert Summary Counter Analytics";
+                document.getElementById('summaryMetricsViewTable').style.display = 'table';
+            } else {
+                document.getElementById('reportMenuOpt').classList.add('active');
+                document.getElementById('workspaceViewTitleHeader').innerText = "Detailed Compliance Risk Threat Reports Ledger";
+                document.getElementById('detailedLogsViewTable').style.display = 'table';
+            }
+            executeBoundMetricsQueryFetchPipeline();
+        }
+
+        // 🛠️ FIXED MANUAL REFRESH PIPELINE: Fetches static snapshots matching exact input constraints
+        async function executeBoundMetricsQueryFetchPipeline() {
+            var fromDate = document.getElementById('queryFromDateInput').value;
+            var toDate = document.getElementById('queryToDateInput').value;
+            if (!fromDate || !toDate) { return; }
+            
+            if (currentActiveViewPerspective === 'summary') {
+                try {
+                    var summaryUrl = '/api/get-report-summary?from_date=' + fromDate + '&to_date=' + toDate;
+                    var res = await fetch(summaryUrl);
+                    var metrics = await res.json();
+                    document.getElementById('summaryCellRule1').innerText = metrics.r1 || 0;
+                    document.getElementById('summaryCellRule2').innerText = metrics.r2 || 0;
+                    document.getElementById('summaryCellRule3').innerText = metrics.r3 || 0;
+                } catch(e) { console.error(e); }
+            } else {
+                try {
+                    var detailedUrl = '/api/get-report-detailed?from_date=' + fromDate + '&to_date=' + toDate;
+                    var res = await fetch(detailedUrl);
+                    var records = await res.json();
+                    var tbody = document.getElementById('detailedLogsGridTableBody');
+                    tbody.innerHTML = '';
+                    
+                    if (records.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:#9ca3af; font-style:italic;">No alert records found matching selected calendar query criteria bounds.</td></tr>';
+                        return;
+                    }
+                    
+                    records.forEach(function(item) {
+                        var tr = document.createElement('tr');
+                        tr.innerHTML = '<td><b>#' + item.alert_id + '</b></td>' +
+                                       '<td>' + item.acn + '</td>' +
+                                       '<td>' + item.cid + '</td>' +
+                                       '<td><span class="alert-marker-tag">' + item.rule_name + '</span></td>' +
+                                       '<td style="color:#6b7280;">' + item.timestamp + '</td>';
+                        tbody.appendChild(tr);
+                    });
+                } catch(e) { console.error(e); }
+            }
+        }
+        
+        initializeDefaultCalendarWindowBounds();
+        executeBoundMetricsQueryFetchPipeline();
+    </script>
+</body>
+</html>
