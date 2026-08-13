@@ -1,100 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><title>Rules Manager</title>
+    <meta charset="UTF-8">
+    <title>Dynamic Compliance Rules Profile Configuration Engine</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background-color: #f3f4f6; padding: 20px; }
-        .workspace-container { width: 100%; max-width: 1050px; margin: 30px auto; min-height: 560px; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f3f4f6; padding: 20px; }
+        .workspace-container { width: 100%; max-width: 1100px; margin: 20px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); }
         .tabs-header { display: flex; background: #ffffff; padding: 15px 20px 0 20px; border-bottom: 1px solid #e5e7eb; }
-        .tab-btn { padding: 14px 28px; font-weight: bold; font-size: 15px; border: none; background: #ffffff; cursor: pointer; text-decoration: none; color: #4b5563; border-radius: 8px 8px 0 0; }
+        .tab-btn { padding: 14px 28px; font-weight: bold; font-size: 15px; border: none; background: #ffffff; cursor: pointer; text-decoration: none; color: #4b5563; border-radius: 8px 8px 0 0; transition: all 0.2s; }
+        .tab-btn:hover { color: #111827; background-color: #f9fafb; }
         .tab-btn.active { background-color: #ffeb3b; color: #000000; }
-        .main-display-panel { display: flex; min-height: 500px; }
-        .sidebar { width: 30%; border-right: 1px solid #e5e7eb; padding: 20px; background-color: #f9fafb; }
-        .content-area { width: 70%; padding: 30px; }
-        .btn-blue { background-color: #2563eb; color: white; padding: 12px; width: 100%; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 20px; font-size: 14px; }
-        .rule-item { padding: 12px 15px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 10px; cursor: pointer; font-weight: 600; color: #374151; display: flex; justify-content: space-between; align-items: center; }
-        .delete-btn { color: #dc2626; border: none; background: none; font-weight: bold; cursor: pointer; font-size: 13px; }
-        .form-control { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
-        .condition-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
-        .condition-row select, .condition-row input { padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; height: 42px; }
-        .btn-sec { background: #475569; color: white; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; margin-bottom: 20px; border: none; }
-        .btn-green { background: #10b981; color: white; border: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .layout-body-wrapper { display: flex; min-height: 520px; }
+        .left-menu-sidebar { width: 260px; background-color: #ffffff; border-right: 1px solid #e5e7eb; padding: 20px 10px; }
+        .add-rule-primary-btn { display: block; width: 100%; text-align: center; background-color: #2563eb; color: #ffffff; font-weight: bold; font-size: 14px; text-decoration: none; padding: 12px; border-radius: 6px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(37,99,235,0.1); cursor: pointer; border: none; }
+        .add-rule-primary-btn:hover { background-color: #1d4ed8; }
+        .rule-list-container { display: flex; flex-direction: column; gap: 10px; }
+        .rule-item-row { display: flex; justify-content: space-between; align-items: center; background-color: #f9fafb; border: 1px solid #e5e7eb; padding: 14px 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .rule-item-row:hover { border-color: #cbd5e1; background-color: #f1f5f9; }
+        .rule-item-row.active { border-color: #2563eb; background-color: #eff6ff; }
+        .rule-name-lbl { font-size: 14px; font-weight: bold; color: #111827; flex: 1; margin-right: 10px; line-height: 1.4; }
+        .rule-delete-trigger-btn { color: #dc2626; font-size: 13px; font-weight: bold; cursor: pointer; background: none; border: none; padding: 4px 8px; border-radius: 4px; transition: background-color 0.2s; }
+        .rule-delete-trigger-btn:hover { background-color: #fee2e2; }
+        .right-content-workspace { flex: 1; padding: 40px; display: flex; flex-direction: column; justify-content: flex-start; min-height: 520px; }
+        .empty-state-notice { margin: auto; text-align: center; color: #9ca3af; font-size: 16px; font-weight: 500; }
+        .form-section-title { font-size: 20px; font-weight: bold; color: #111827; margin-bottom: 25px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb; }
+        .form-row-split { display: flex; gap: 20px; margin-bottom: 25px; }
+        .input-group-row { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+        .input-group-row label { font-size: 11px; font-weight: bold; color: #4b5563; text-transform: uppercase; letter-spacing: 0.03em; }
+        .text-input-field { width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; color: #111827; background: #ffffff; height: 40px; }
+        .text-input-field:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .section-subtitle-lbl { font-size: 12px; font-weight: bold; color: #374151; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.03em; }
+        .condition-matrix-box { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; width: 100%; }
+        .condition-row-item { display: flex; align-items: center; gap: 12px; width: 100%; background: #ffffff; border: 1px solid #d1d5db; padding: 12px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+        .select-dropdown-field { height: 38px; padding: 0 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; color: #111827; background-color: #ffffff; min-width: 200px; }
+        .operator-dropdown-field { height: 38px; padding: 0 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; color: #111827; background-color: #ffffff; min-width: 110px; }
+        .logic-link-dropdown-field { height: 38px; padding: 0 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; font-weight: bold; color: #374151; background-color: #f8fafc; min-width: 90px; }
+        .value-input-box { flex: 1; height: 38px; padding: 0 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; color: #111827; }
+        .remove-condition-row-btn { background-color: #dc2626; color: #ffffff; border: none; width: 34px; height: 34px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; transition: background-color 0.15s; }
+        .remove-condition-row-btn:hover { background-color: #b91c1c; }
+        .add-condition-clause-link { background-color: #1e293b; color: #ffffff; font-weight: bold; font-size: 13px; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; align-self: flex-start; margin-bottom: 30px; transition: background-color 0.15s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .add-condition-clause-link:hover { background-color: #0f172a; }
+        .action-dispatch-panel { display: flex; justify-content: flex-end; gap: 15px; width: 100%; border-top: 1px solid #e5e7eb; padding-top: 25px; margin-top: 10px; }
+        .save-rule-action-btn { background-color: #059669; border: none; color: #ffffff; font-weight: bold; font-size: 14px; padding: 12px 32px; border-radius: 6px; cursor: pointer; transition: background-color 0.15s; box-shadow: 0 1px 3px rgba(5,150,105,0.1); }
+        .save-rule-action-btn:hover { background-color: #047857; }
+        .readonly-condition-badge { display: inline-block; background-color: #eff6ff; color: #1e40af; padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; margin-right: 10px; margin-bottom: 10px; border: 1px solid #bfdbfe; }
     </style>
 </head>
 <body>
     <div class="workspace-container">
         <div class="tabs-header">
-    <a href="/home" class="tab-btn">Home</a>
-    <a href="/config" class="tab-btn">Config</a>
-    <a href="/rules" class="tab-btn active">Rules</a>
-    <a href="/report" class="tab-btn">Report</a>
-    </div>
-
-
-        <div class="main-display-panel">
-            <div class="sidebar">
-                <button class="btn-blue" onclick="openNewRuleForm()">+ Add Rule</button>
-                <div id="rulesSidebarList"></div>
+            <a href="/home" class="tab-btn">Home</a>
+            <a href="/config" class="tab-btn">Config</a>
+            <a href="/rules" class="tab-btn active">Rules</a>
+            <a href="/report" class="tab-btn">Report</a>
+        </div>
+        <div class="layout-body-wrapper">
+            <div class="left-menu-sidebar">
+                <button class="add-rule-primary-btn" onclick="openNewRuleCreationFormPerspective()">+ Add Rule</button>
+                <div id="ruleItemsListingContainer" class="rule-list-container"></div>
             </div>
-            <div class="content-area" id="rulesContentAreaWorkspace">
-                <h3 style="color: #6b7280; text-align: center; margin-top: 100px;">Select or Add a Rule</h3>
+            <div id="rightWorkspaceWorkspaceCanvas" class="right-content-workspace">
+                <div class="empty-state-notice">Select or Add a Rule</div>
             </div>
         </div>
     </div>
-    <script>
-        var globalRulesMemory = [];
-        async function loadSystemRulesFromDatabase() {
-            try {
-                var res = await fetch('/api/get-rules');
-                globalRulesMemory = await res.json();
-                renderRulesSidebarList();
-            } catch(e) { console.error(e); }
-        }
-        function renderRulesSidebarList() {
-            var container = document.getElementById('rulesSidebarList'); container.innerHTML = '';
-            globalRulesMemory.forEach(function(rule) {
-                var div = document.createElement('div'); div.className = 'rule-item';
-                div.innerHTML = '<span>' + rule.name + '</span><button class="delete-btn" onclick="deleteRuleTrack(event, ' + rule.id + ')">Delete</button>';
-                div.onclick = function() { renderSelectedRuleView(rule.id); }; container.appendChild(div);
-            });
-        }
-        function openNewRuleForm() {
-            document.getElementById('rulesContentAreaWorkspace').innerHTML = '<h3>Configure Rule Matrix</h3><div style="display:flex; gap:20px; margin-top:20px;"><div style="flex:1;"><label style="font-weight:bold; font-size:14px;">RULE NAME</label><input type="text" id="newRuleFieldName" class="form-control" placeholder="Enter rule name"></div><div style="flex:1;"><label style="font-weight:bold; font-size:14px;">RULE DESCRIPTION</label><input type="text" id="newRuleFieldDesc" class="form-control" placeholder="Enter objective summary"></div></div><h4 style="margin:20px 0 10px 0;">CONDITION ROWS</h4><div id="formConditionsRowsContainer"></div><button class="btn-sec" onclick="appendNewConditionInputRow()">+ Add Condition Row</button><div style="text-align:right; margin-top:20px;"><button class="btn-green" onclick="submitRuleFormPayload()">Save Rule Configuration</button></div>';
-            appendNewConditionInputRow();
-        }
-        function appendNewConditionInputRow() {
-            var container = document.getElementById('formConditionsRowsContainer'); var row = document.createElement('div'); row.className = 'condition-row';
-            // FIXED ELEMENT IDENTIFIER: Explicitly attaches class="cond-logic" to keep parameters synced
-            row.innerHTML = '<select class="cond-param" style="width:28%;"><option value="aod">Account Opening Days</option><option value="Narration">Narration</option><option value="Amount">Amount</option><option value="drcr">DrCr (cr/dr)</option><option value="channel">Channel</option><option value="credit">Cumulative Credit</option><option value="debit">Cumulative Debit</option></select><select class="cond-oper" style="width:12%;"><option value="=">=</option><option value="!=">!=</option><option value=">">&gt;</option><option value="<">&lt;</option></select><input type="text" class="cond-val" style="width:38%;" placeholder="Value..."><select class="cond-logic" style="width:14%;"><option value="AND">AND</option><option value="OR">OR</option></select><button style="background:#ef4444; color:white; border:none; border-radius:6px; width:38px; height:38px; font-weight:bold; cursor:pointer;" onclick="this.parentElement.remove()">×</button>';
-            container.appendChild(row);
-        }
-        async function submitRuleFormPayload() {
-            var name = document.getElementById('newRuleFieldName').value.trim(); var desc = document.getElementById('newRuleFieldDesc').value.trim(); if(!name) return;
-            var condRows = document.querySelectorAll('.condition-row'); var conditionsArray = [];
-            condRows.forEach(function(row) {
-                var p = row.querySelector('.cond-param').value; var o = row.querySelector('.cond-oper').value; var v = row.querySelector('.cond-val').value.trim(); var l = row.querySelector('.cond-logic').value;
-                if(v) { conditionsArray.push({ parameter: p, operator: o, value: v + ' [' + l + ']' }); }
-            });
-            if(conditionsArray.length === 0) return;
-            try {
-                var res = await fetch('/api/save-rule', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rule_name: name, rule_description: desc, conditions: conditionsArray }) });
-                if(res.ok) { loadSystemRulesFromDatabase(); document.getElementById('rulesContentAreaWorkspace').innerHTML = '<h3>Select or Add a Rule</h3>'; }
-            } catch(e) { console.error(e); }
-        }
-        function renderSelectedRuleView(ruleId) {
-            var rule = globalRulesMemory.find(function(r) { return r.id === ruleId; }); if(!rule) return;
-            var condsHtml = ''; rule.conditions.forEach(function(c) { condsHtml += '<div style="font-family:monospace; background:#ffffff; padding:8px 12px; border:1px solid #e5e7eb; border-radius:4px; margin-top:6px;">📌 <b>' + c.parameter + '</b> ' + c.operator + ' <span>' + c.value + '</span></div>'; });
-            document.getElementById('rulesContentAreaWorkspace').innerHTML = '<div style="background:#fafafa; border:1px solid #e5e7eb; padding:20px; border-radius:8px;"><div style="font-size:18px; font-weight:bold; margin-bottom:10px;">' + rule.name + '</div><p style="color:#4b5563; font-size:14px; margin-bottom:15px;">' + (rule.description || 'No description.') + '</p><h4>Active Validation Logic</h4><div>' + condsHtml + '</div></div>';
-        }
-        async function deleteRuleTrack(event, ruleId) {
-            event.stopPropagation(); if(!confirm("Erase this rule?")) return;
-            try {
-                var res = await fetch('/api/delete-rule/' + ruleId, { method: 'DELETE' });
-                if(res.ok) { loadSystemRulesFromDatabase(); document.getElementById('rulesContentAreaWorkspace').innerHTML = '<h3>Select or Add a Rule</h3>'; }
-            } catch(e) { console.error(e); }
-        }
-        loadSystemRulesFromDatabase();
-    </script>
+    
+    <!-- Link out directly to a separate static logic file to bypass code filters -->
+    <script src="/static/rules_engine.js"></script>
 </body>
 </html>

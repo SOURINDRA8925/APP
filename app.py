@@ -99,7 +99,7 @@ def load_bank_transactions_csv():
         return False
 
 # ==============================================================================
-# FULLY DYNAMIC AM COMPLIANCE ANALYSIS THREAD ENGINE
+# SECTION 4: FULLY DYNAMIC DYNAMIC AM COMPLIANCE ANALYSIS THREAD ENGINE
 # ==============================================================================
 def run_rule_engine_scheduler_loop():
     """Background engine loop that evaluates transactions against dynamic database conditions."""
@@ -110,7 +110,7 @@ def run_rule_engine_scheduler_loop():
             cursor.execute("SELECT setting_value FROM settings WHERE setting_key = 'rule_engine'")
             status_row = cursor.fetchone()
             
-            # Connection guard: release connections and stand by if user switch is OFF [INDEX]
+            # Switch guard: if toggled off, release connection handle immediately and stand by
             if not status_row or status_row == 0:
                 conn.close()
                 time.sleep(1)
@@ -124,7 +124,7 @@ def run_rule_engine_scheduler_loop():
                 time.sleep(2)
                 continue
 
-            # Read all active compliance rules from database tables dynamically [INDEX]
+            # Fetch all user-saved rules from database tables dynamically
             cursor.execute("SELECT rule_id, rule_name FROM system_rules")
             active_rules = cursor.fetchall()
             
@@ -135,7 +135,7 @@ def run_rule_engine_scheduler_loop():
                 rules_compiled_map[r_id] = {"name": r_name, "conditions": conditions}
 
             for txn in batch_txns:
-                # Active Check: Instant shutdown checkpoint inside iterative block processing loops [INDEX]
+                # Mid-batch loop active switch checkpoint
                 cursor.execute("SELECT setting_value FROM settings WHERE setting_key = 'rule_engine'")
                 check_live = cursor.fetchone()
                 if not check_live or check_live == 0:
@@ -143,17 +143,24 @@ def run_rule_engine_scheduler_loop():
 
                 db_rowid, acn, cid, amount, channel, narration, tx_date, aod, drcr = txn
                 
+                # Extract numerical variables safely
+                parsed_amount = float(amount) if amount else 0.0
+                parsed_drcr = float(drcr) if str(drcr).replace('.','',1).isdigit() else 0.0
+                
+                # ✅ UNIFIED PARAMETER MAP: Binds legacy CSV keys directly to new selection arrays
                 txn_data_metrics = {
                     "acn": str(acn),
                     "cid": str(cid),
-                    "amount": float(amount) if amount else 0.0,
+                    "amount": parsed_amount,
+                    "cum_credit": parsed_amount,  # Maps amount to cumulative credit parameter
+                    "cum_debit": parsed_drcr,     # Maps drcr to cumulative debit parameter
+                    "drcr": parsed_drcr,
                     "channel": str(channel).lower(),
                     "narration": str(narration).lower(),
-                    "aod": int(aod) if str(aod).isdigit() else 0,
-                    "drcr": float(drcr) if str(drcr).replace('.','',1).isdigit() else 0.0
+                    "aod": int(aod) if str(aod).isdigit() else 0
                 }
 
-                # Evaluate transaction properties dynamically matching saved database layouts [INDEX]
+                # Evaluate transaction properties dynamically matching saved database layouts
                 for r_id, rule_package in rules_compiled_map.items():
                     all_conditions_satisfied = True
                     
@@ -167,7 +174,7 @@ def run_rule_engine_scheduler_loop():
                             
                         current_stat_val = txn_data_metrics[param]
                         
-                        # Process text data parsing conditions safely
+                        # Process text parameters string matching evaluation logic flags
                         if isinstance(current_stat_val, str):
                             chk_val = str(target_val).lower().strip()
                             if operator == "contains" and chk_val not in current_stat_val:
@@ -175,7 +182,7 @@ def run_rule_engine_scheduler_loop():
                             elif operator == "==" and current_stat_val != chk_val:
                                 all_conditions_satisfied = False
                                 
-                        # Process numeric parameters mathematical evaluation logic flags safely
+                        # Process numeric parameters mathematical evaluation logic flags
                         else:
                             try:
                                 chk_val = float(target_val)
@@ -201,6 +208,7 @@ def run_rule_engine_scheduler_loop():
         except Exception as e:
             print(f"Dynamic analysis engine background scheduler trace exception: {e}")
         time.sleep(1)
+
 # ==============================================================================
 # BACKEND SETTINGS INTERACTIVE CONTROLLERS
 # ==============================================================================
@@ -304,6 +312,26 @@ def save_rule():
     conn.commit()
     cursor.close()
     return jsonify({'status': 'success'}), 201
+
+    # 🛠️ FIREWALL SAFE DELETION ROUTE: Uses standard POST to completely bypass network port restrictions
+@app.route('/api/delete-rule/<int:rule_id>', methods=['POST'])
+def delete_rule_record(rule_id):
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        
+        # Safely remove the child conditional rows matching this rule index first
+        cursor.execute('DELETE FROM rule_conditions WHERE rule_id = ?', (rule_id,))
+        # Remove the parent rule schema record entry cleanly
+        cursor.execute('DELETE FROM system_rules WHERE rule_id = ?', (rule_id,))
+        
+        conn.commit()
+        conn.close()
+        return jsonify({'status': 'success'}), 200
+    except Exception as e:
+        print(f"Database safe-deletion engine trace failure: {e}")
+        return jsonify({'status': 'failure'}), 500
+
 
 @app.route('/api/get-rules', methods=['GET'])
 def get_rules():
@@ -438,10 +466,69 @@ def export_report_csv_file():
         return jsonify({'status': 'failure'}), 500
 
 # ==============================================================================
-#  USER PAGE VIEW INTERFACE PATHS
+# SECTION 10: USER APPLICATION LAYOUT PATHS & SECURE DYNAMIC REGISTRATION
 # ==============================================================================
+@app.route('/api/register', methods=['POST'])
+def handle_user_registration():
+    try:
+        payload = request.get_json() or {}
+        reg_username = str(payload.get('username', '')).strip()
+        reg_password = str(payload.get('password', '')).strip()
+        
+        if not reg_username or not reg_password:
+            return jsonify({'status': 'failure', 'message': 'Username and password fields cannot be blank.'}), 400
+            
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        
+        # Check if the user handle profile already exists in the configuration database rows
+        cursor.execute("SELECT setting_value FROM settings WHERE setting_key = ?", (reg_username,))
+        existing_user = cursor.fetchone()
+        
+        if existing_user:
+            conn.close()
+            return jsonify({'status': 'failure', 'message': 'Username is already taken. Please choose another.'}), 409
+            
+        # Dynamically write your self-created credentials straight into settings rows
+        cursor.execute("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?)", (reg_username, reg_password))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'status': 'success', 'message': 'Account registered successfully!'}), 201
+    except Exception as reg_err:
+        print(f"Registration database pipeline trace failure: {reg_err}")
+        return jsonify({'status': 'failure', 'message': 'Internal registration engine error.'}), 500
+
 @app.route('/api/login', methods=['POST'])
-def bypass_login_check(): return jsonify({'status': 'success'}), 200
+def bypass_login_check():
+    try:
+        payload = request.get_json() or {}
+        input_username = str(payload.get('username', '')).strip()
+        input_password = str(payload.get('password', '')).strip()
+        
+        if not input_username or not input_password:
+            return jsonify({'status': 'failure', 'message': 'Missing user credentials.'}), 400
+            
+        # Hardcoded recovery root bypass profile to guarantee you never get locked out
+        if input_username == "Souri892536" and input_password == "Sourindra@123":
+            return jsonify({'status': 'success'}), 200
+            
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        
+        # Pull your custom self-created password credentials dynamically from database tables
+        cursor.execute("SELECT setting_value FROM settings WHERE setting_key = ?", (input_username,))
+        db_row = cursor.fetchone()
+        conn.close()
+        
+        if db_row and str(db_row[0]) == input_password:
+            return jsonify({'status': 'success'}), 200
+            
+        return jsonify({'status': 'failure', 'message': 'Invalid username or password credentials configuration.'}), 401
+    except Exception as login_err:
+        print(f"Login dynamic database validation failure trace: {login_err}")
+        return jsonify({'status': 'failure', 'message': 'Internal login validation error.'}), 500
+
 @app.route('/')
 def login_portal(): return render_template('index.html')
 @app.route('/home')
@@ -453,8 +540,9 @@ def rules_page(): return render_template('rules.html')
 @app.route('/report')
 def reports_page_view(): return render_template('report.html')
 
+
 # ==============================================================================
-# SECTION 11: REBOOT SYSTEM INITIALIZATION LAUNCHER
+#  REBOOT SYSTEM INITIALIZATION LAUNCHER
 # ==============================================================================
 def start_compliance_analytics_monitor():
     init_db()
