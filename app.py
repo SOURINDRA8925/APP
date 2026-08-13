@@ -1,5 +1,5 @@
 # ==============================================================================
-# SECTION 1: GLOBAL COMPLIANCE ENVIRONMENT TRACKING DEPENDENCIES
+#  GLOBAL COMPLIANCE ENVIRONMENT TRACKING DEPENDENCIES
 # ==============================================================================
 import os
 import csv
@@ -26,7 +26,7 @@ DB_FILE = 'project.db'
 TARGET_CSV = 'Bank_transactions.csv'
 
 # ==============================================================================
-# SECTION 2: RELATIONAL DATABASE SCHEMAS DEFINITION
+#  RELATIONAL DATABASE SCHEMAS DEFINITION
 # ==============================================================================
 def init_db():
     """Configures the persistent data structures and seeds baseline rules."""
@@ -65,7 +65,7 @@ def init_db():
     conn.commit()
     conn.close()
 # ==============================================================================
-# SECTION 3: AUTOMATED SOURCE DATA INJECTION SERVICE
+#  AUTOMATED SOURCE DATA INJECTION SERVICE
 # ==============================================================================
 def load_bank_transactions_csv():
     """Streams data lines from local disk source CSV file directly into memory data tables."""
@@ -99,7 +99,7 @@ def load_bank_transactions_csv():
         return False
 
 # ==============================================================================
-# SECTION 4: FULLY DYNAMIC DYNAMIC AM COMPLIANCE ANALYSIS THREAD ENGINE
+# FULLY DYNAMIC AM COMPLIANCE ANALYSIS THREAD ENGINE
 # ==============================================================================
 def run_rule_engine_scheduler_loop():
     """Background engine loop that evaluates transactions against dynamic database conditions."""
@@ -202,7 +202,7 @@ def run_rule_engine_scheduler_loop():
             print(f"Dynamic analysis engine background scheduler trace exception: {e}")
         time.sleep(1)
 # ==============================================================================
-# SECTION 5: BACKEND SETTINGS INTERACTIVE CONTROLLERS
+# BACKEND SETTINGS INTERACTIVE CONTROLLERS
 # ==============================================================================
 @app.route('/api/update-setting', methods=['POST'])
 def update_setting():
@@ -238,7 +238,7 @@ def get_settings():
         return jsonify({'data_pulling': False, 'rule_engine': False}), 200
 
 # ==============================================================================
-# SECTION 6: HEADLESS GRAPH PLOTTING VISUALIZATION CONTROLLERS
+#  HEADLESS GRAPH PLOTTING VISUALIZATION CONTROLLERS
 # ==============================================================================
 @app.route('/api/get-bar-chart.png')
 def generate_bar_chart_image():
@@ -284,7 +284,7 @@ def generate_pie_chart_image():
     buf.seek(0)
     return Response(buf.getvalue(), mimetype='image/png')
 # ==============================================================================
-# SECTION 7: STABLE CRUD MANAGEMENT ENDPOINTS
+# STABLE CRUD MANAGEMENT ENDPOINTS
 # ==============================================================================
 @app.route('/api/save-rule', methods=['POST'])
 def save_rule():
@@ -342,7 +342,7 @@ def get_rules():
         return jsonify([]), 200
 
 # ==============================================================================
-# SECTION 8: STRUCTURAL COMPLIANCE DATE RANGE STRING PARSERS
+#  STRUCTURAL COMPLIANCE DATE RANGE STRING PARSERS
 # ==============================================================================
 def clean_date_to_int_token(raw_date_str):
     """Normalizes formatting tokens safely into direct integers for stable matrix comparisons [INDEX]."""
@@ -357,7 +357,7 @@ def clean_date_to_int_token(raw_date_str):
     return int(p[0]) * 10000 + int(p[1]) * 100 + int(p[2])
 
 # ==============================================================================
-# SECTION 9: STABLE REPORTS AGGREGATION & EXP LOGS SPREADSHEETS ENDPOINTS
+#  STABLE REPORTS AGGREGATION & EXP LOGS SPREADSHEETS ENDPOINTS
 # ==============================================================================
 @app.route('/api/get-report-summary', methods=['GET'])
 def get_report_summary():
@@ -438,7 +438,7 @@ def export_report_csv_file():
         return jsonify({'status': 'failure'}), 500
 
 # ==============================================================================
-# SECTION 10: USER PAGE VIEW INTERFACE PATHS
+#  USER PAGE VIEW INTERFACE PATHS
 # ==============================================================================
 @app.route('/api/login', methods=['POST'])
 def bypass_login_check(): return jsonify({'status': 'success'}), 200
