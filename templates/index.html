@@ -25,14 +25,16 @@
     <div class="auth-card-panel">
         <div class="portal-title-lbl">Account Authentication</div>
         <form onsubmit="event.preventDefault();">
-            <div class="input-group-row">
+                       <div class="input-group-row">
                 <label>Username</label>
-                <input type="text" id="usernameField" class="text-input-field" placeholder="Enter username" value="Souri892536">
+
+                <input type="text" id="usernameField" class="text-input-field" placeholder="Create your custom username...">
             </div>
             <div class="input-group-row">
                 <label>Password</label>
-                <input type="password" id="passwordField" class="text-input-field" placeholder="Enter password">
+                <input type="password" id="passwordField" class="text-input-field" placeholder="Create your custom password...">
             </div>
+
             <button class="primary-action-btn blue" onclick="processUserLogin()">Sign In</button>
             <button class="primary-action-btn green" onclick="processUserRegistration()">Create Account</button>
         </form>
