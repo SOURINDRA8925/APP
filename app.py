@@ -1,6 +1,6 @@
-# ==============================================================================
+
 # SECTION 1: GLOBAL PLATFORM SYSTEM LIBRARIES & SETUP
-# ==============================================================================
+
 import os
 import csv
 import time
@@ -23,9 +23,9 @@ CORS(app)
 DB_FILE = 'project.db'
 TARGET_CSV = 'Bank_transactions.csv'
 
-# ==============================================================================
+
 # SECTION 2: RELATIONAL DATABASE CONFIGURATION
-# ==============================================================================
+
 def init_db():
     """Initializes standard SQL storage tables without wiping data on boot."""
     conn = sqlite3.connect(DB_FILE)
@@ -58,9 +58,9 @@ def init_db():
     conn.commit()
     conn.close()
 
-# ==============================================================================
+
 # SECTION 3: AUTOMATED DATA INJECTION SERVICE WITH FLOATING dec RECTIFICATION
-# ==============================================================================
+
 def load_bank_transactions_csv():
     """Streams transaction data rows directly from the CSV file into DB with float cleanup."""
     if not os.path.exists(TARGET_CSV): 
@@ -103,9 +103,9 @@ def load_bank_transactions_csv():
         print(f"CSV data parsing channel pipeline failure trace: {e}")
         return False
 
-# ==============================================================================
+
 # SECTION 4: FIREWALL-SAFE REAL-TIME RULES PROCESSING ENGINE
-# ==============================================================================
+
 def run_rule_engine_scheduler_loop():
     """Background engine loop that evaluates transactions with strict float casting and logs live timestamps."""
     while True:
@@ -140,7 +140,7 @@ def run_rule_engine_scheduler_loop():
             for txn in batch_txns:
                 tx_id, acn, cid, amount, channel, narration, tx_date, aod, drcr = txn
                 
-                # ✅ FIX: Strict programmatic extraction purges text padding strings cleanly
+                #  Strict programmatic extraction purges text padding strings cleanly
                 clean_amount_str = str(amount).replace('$', '').replace(',', '').strip()
                 try:
                     parsed_amount = float(clean_amount_str) if clean_amount_str else 0.0
@@ -205,9 +205,9 @@ def run_rule_engine_scheduler_loop():
             print(f"Dynamic analysis engine background worker failure trace: {e}")
         time.sleep(1)
 
-# ==============================================================================
+
 # SECTION 5: APP ROUTING CONTROLLER INPUTS
-# ==============================================================================
+
 @app.route('/api/update-setting', methods=['POST'])
 def update_setting():
     payload = request.get_json() or {}
@@ -239,9 +239,9 @@ def get_settings():
     except:
         return jsonify({'data_pulling': False, 'rule_engine': False}), 200
 
-# ==============================================================================
+
 # SECTION 6: LIVE RECURSIVE PLOTTING CHARTS GENERATOR FROM DATABASE ROWS
-# ==============================================================================
+
 @app.route('/api/get-bar-chart.png')
 def generate_bar_chart_image():
     """Generates the timeline history bar chart dynamically from database alert details."""
@@ -337,9 +337,9 @@ def generate_pie_chart_image():
     return Response(buf.getvalue(), mimetype='image/png')
 
 
-# ==============================================================================
+
 # SECTION 7: INTERACTIVE SAVE, GET & Dynamic REST CONFIGURATORS
-# ==============================================================================
+
 @app.route('/api/save-rule', methods=['POST'])
 def save_rule():
     payload = request.get_json() or {}
@@ -394,9 +394,9 @@ def get_rules():
         return jsonify([]), 200
 
 
-# ==============================================================================
+
 # SECTION 8: STRUCTURAL COMPLIANCE DATE RANGE STRING PARSERS
-# ==============================================================================
+
 def clean_date_to_int_token(raw_date_str):
     """Converts both frontend YYYY-MM-DD inputs and backend text month strings safely into comparable integers."""
     try:
@@ -430,9 +430,9 @@ def clean_date_to_int_token(raw_date_str):
         
     return 0
 
-# ==============================================================================
+
 # SECTION 9: REPORT AGGREGATORS & EXPORT SPREADSHEETS
-# ==============================================================================
+
 @app.route('/api/get-report-summary', methods=['GET'])
 def get_report_summary():
     from_d = request.args.get('from_date', '1970-01-01')
@@ -523,9 +523,9 @@ def delete_rule_record(rule_id):
     except: 
         return jsonify({'status': 'failure'}), 500
 
-# ==============================================================================
+
 # SECTION 10: USER LOGIN VERIFICATION PATHS
-# ==============================================================================
+
 @app.route('/api/login', methods=['POST'])
 def bypass_login_check(): return jsonify({'status': 'success'}), 200
 @app.route('/')
